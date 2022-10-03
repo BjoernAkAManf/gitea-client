@@ -89,3 +89,14 @@ swagger-deploy:
         -Dfile=gitea-api-${GITEA_VERSION}.jar \
         -Dsources=gitea-api-${GITEA_VERSION}-sources.jar \
         -Djavadoc=gitea-api-${GITEA_VERSION}-javadoc.jar
+
+ci-generate-settings:
+    FROM busybox
+    ARG MAVEN_REPOSITORY_ID
+    ARG MAVEN_REPOSITORY_USER
+    ARG MAVEN_REPOSITORY_PASS
+
+    WORKDIR /tmp
+    COPY scripts/maven-settings-generate.sh .
+    RUN chmod +x ./maven-settings-generate.sh && ./maven-settings-generate.sh > settings.xml
+    SAVE ARTIFACT settings.xml AS LOCAL ./settings.xml

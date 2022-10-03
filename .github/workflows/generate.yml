@@ -16,16 +16,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # Setup: Creates a settings.xml (As a side effect, also installs maven)
-      - name: Set up JDK 11
-        uses: actions/setup-java@v3
-        with:
-          # Needs to be the same as MAVEN_REPOSITORY_ID below
-          server-id: github
-          java-version: '11'
-          distribution: 'temurin'
-          # Required, as earthly needs to copy the settings.xml
-          settings-path: ${{ github.workspace }}
+      # Setup: Creates a settings.xml (Without relying on Environment Variables)
+      - name: Generate settings.xml
+        run: |
+          earthly +ci-generate-settings \
+              --MAVEN_REPOSITORY_ID=github \
+              --MAVEN_REPOSITORY_USER=${{ github.actor }} \
+              --MAVEN_REPOSITORY_PASS=${{ github.token }}
 
       # Setup: Installs earthly
       - name: Download latest earthly
