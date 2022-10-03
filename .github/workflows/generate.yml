@@ -3,7 +3,7 @@ name: Generate Client
 on:
   push:
     branches:
-      - ci-test # TODO: Replace with master
+      - master
 
 jobs:
   build:
