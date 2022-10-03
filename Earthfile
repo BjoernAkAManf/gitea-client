@@ -56,10 +56,10 @@ swagger-compile:
     WORKDIR /compile
 
     COPY +swagger-postprocess/pom.xml ./pom.xml
-    RUN mvn dependency:go-offline
+    RUN mvn -B dependency:go-offline
 
     COPY +swagger-postprocess/ .
-    RUN mvn verify
+    RUN mvn -B verify
 
     # Tests are removed, so no need for test.jar
     RUN rm target/*-tests.jar
@@ -78,7 +78,7 @@ swagger-deploy:
     COPY settings.xml .
 
     RUN mvn \
-        deploy:deploy-file \
+        deploy:deploy-file -B \
         --settings ./settings.xml \
         -DpomFile=pom.xml \
         -Dfile=gitea-api-${GITEA_VERSION}.jar \
