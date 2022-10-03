@@ -44,4 +44,4 @@ jobs:
             --MAVEN_REPOSITORY_URL=$MAVEN_REPO
         env:
           GITHUB_TOKEN: ${{ github.token }}
-          MAVEN_REPO: https://maven.pkg.github.com/${{ github.action_repository }}
+          MAVEN_REPO: https://maven.pkg.github.com/${{ github.repository }}
