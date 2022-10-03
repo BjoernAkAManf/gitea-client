@@ -41,6 +41,7 @@ jobs:
         run: |
           earthly +swagger-deploy \
             --MAVEN_REPOSITORY_ID=github \
-            --MAVEN_REPOSITORY_URL=https://maven.pkg.github.com/${{ github.action_repository }}
+            --MAVEN_REPOSITORY_URL=$MAVEN_REPO
         env:
           GITHUB_TOKEN: ${{ github.token }}
+          MAVEN_REPO: https://maven.pkg.github.com/${{ github.action_repository }}
