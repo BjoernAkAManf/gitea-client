@@ -29,7 +29,7 @@ jobs:
 
       # Setup: Installs earthly
       - name: Download latest earthly
-        run: "sudo /bin/sh -c 'wget –quiet https://github.com/earthly/earthly/releases/latest/download/earthly-linux-amd64 -O /usr/local/bin/earthly && chmod +x /usr/local/bin/earthly'"
+        run: "sudo /bin/sh -c 'wget –-quiet https://github.com/earthly/earthly/releases/latest/download/earthly-linux-amd64 -O /usr/local/bin/earthly && chmod +x /usr/local/bin/earthly'"
       - name: Earthly version
         run: earthly --version
 
