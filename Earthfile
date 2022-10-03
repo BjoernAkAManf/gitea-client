@@ -38,7 +38,7 @@ swagger-postprocess:
 
     WORKDIR /post
     COPY +swagger-generate/java .
-    RUN /cleanup.sh
+    RUN chmod +x /cleanup.sh && /cleanup.sh
     SAVE ARTIFACT ./*
 
 swagger-preprocess:
@@ -56,10 +56,10 @@ swagger-compile:
     WORKDIR /compile
 
     COPY +swagger-postprocess/pom.xml ./pom.xml
-    RUN mvn dependency:go-offline
+    RUN mvn -B dependency:go-offline
 
     COPY +swagger-postprocess/ .
-    RUN mvn verify
+    RUN mvn -B verify
 
     # Tests are removed, so no need for test.jar
     RUN rm target/*-tests.jar
@@ -78,7 +78,7 @@ swagger-deploy:
     COPY settings.xml .
 
     RUN mvn \
-        deploy:deploy-file \
+        deploy:deploy-file -B \
         --settings ./settings.xml \
         -DpomFile=pom.xml \
         -Dfile=gitea-api-${GITEA_VERSION}.jar \
@@ -87,3 +87,14 @@ swagger-deploy:
         -Dfile=gitea-api-${GITEA_VERSION}.jar \
         -Dsources=gitea-api-${GITEA_VERSION}-sources.jar \
         -Djavadoc=gitea-api-${GITEA_VERSION}-javadoc.jar
+
+ci-generate-settings:
+    FROM busybox
+    ARG MAVEN_REPOSITORY_ID
+    ARG MAVEN_REPOSITORY_USER
+    ARG MAVEN_REPOSITORY_PASS
+
+    WORKDIR /tmp
+    COPY scripts/maven-settings-generate.sh .
+    RUN chmod +x ./maven-settings-generate.sh && ./maven-settings-generate.sh > settings.xml
+    SAVE ARTIFACT settings.xml AS LOCAL ./settings.xml

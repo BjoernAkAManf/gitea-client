@@ -1,0 +1,43 @@
+name: Generate Client
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: 'Setup: Install earthly'
+        run: "sudo /bin/sh -c 'wget https://github.com/earthly/earthly/releases/latest/download/earthly-linux-amd64 -q -O /usr/local/bin/earthly && chmod +x /usr/local/bin/earthly'"
+      - name: Earthly version
+        run: earthly --version
+
+      # Instead of actions/setup-java this does not rely on
+      - name: 'Setup: Creates a settings.xml'
+        run: |
+          earthly +ci-generate-settings \
+              --MAVEN_REPOSITORY_ID=github \
+              --MAVEN_REPOSITORY_USER=${{ github.actor }} \
+              --MAVEN_REPOSITORY_PASS=${{ github.token }}
+
+      - name: Build
+        run: earthly +swagger-compile
+
+      # TODO: Should only run on release
+      - name: Push to Maven Repository
+        run: |
+          earthly +swagger-deploy \
+            --MAVEN_REPOSITORY_ID=github \
+            --MAVEN_REPOSITORY_URL=$MAVEN_REPO
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          MAVEN_REPO: https://maven.pkg.github.com/${{ github.repository }}
