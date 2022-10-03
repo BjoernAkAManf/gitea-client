@@ -38,7 +38,7 @@ swagger-postprocess:
 
     WORKDIR /post
     COPY +swagger-generate/java .
-    RUN /cleanup.sh
+    RUN chmod +x /cleanup.sh && /cleanup.sh
     SAVE ARTIFACT ./*
 
 swagger-preprocess:
