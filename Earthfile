@@ -77,8 +77,6 @@ swagger-deploy:
     COPY +swagger-compile/*.jar .
     COPY settings.xml .
 
-    RUN cat settings.xml
-    RUN env
     RUN mvn \
         deploy:deploy-file -B \
         --settings ./settings.xml \
