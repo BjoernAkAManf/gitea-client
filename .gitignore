@@ -1,0 +1,7 @@
+# Maven
+target
+settings.xml
+
+# IDE
+.idea
+*.iml

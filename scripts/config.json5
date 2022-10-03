@@ -1,0 +1,44 @@
+{
+    // Swagger - Code Generation with reduced third-party dependencies
+    java11: true,
+    dateLibrary: "java11",
+
+    // TODO: Template for vertx (api_impl) contains documentation but (api) does not.
+    library: "vertx",
+    // No need for the @Generated annotation
+    // (Causes additional dependency, which is not handled great by existing template)
+    hideGenerationTimestamp: true,
+
+    // Swagger - Misc Settings
+    useGzipFeature: true,
+    useBeanValidation: false,
+    performBeanValidation: false,
+    useRuntimeException: false,
+
+    // Swagger - Names of the different packages
+    invokerPackage: "pro.heinrichs.generated.gitea.config",
+    modelPackage: "pro.heinrichs.generated.gitea.models",
+    apiPackage: "pro.heinrichs.generated.gitea.api",
+
+    // Maven - Project Information
+    artifactId: "gitea-api",
+    groupId: "pro.heinrichs.generated",
+    // artifactVersion: "<GENERATED>",
+    artifactUrl: "https://example.com",
+    artifactDescription: "TODO: Update",
+
+    // Maven - SCM
+    scmConnection: "TODO: 5",
+    scmDeveloperConnection: "TODO: 6",
+    scmUrl: "TODO: 7",
+
+    // Maven - Developer
+    developerName: "TODO: 1",
+    developerEmail: "TODO: 2",
+    developerOrganization: "TODO: 3",
+    developerOrganizationUrl: "TODO: 4",
+
+    /// Maven - License
+    licenseName: "TODO: License 1",
+    licenseUrl: "TODO: License 2"
+}
