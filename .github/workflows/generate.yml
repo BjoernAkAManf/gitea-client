@@ -16,19 +16,18 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # Setup: Creates a settings.xml (Without relying on Environment Variables)
-      - name: Generate settings.xml
+      - name: 'Setup: Install earthly'
+        run: "sudo /bin/sh -c 'wget https://github.com/earthly/earthly/releases/latest/download/earthly-linux-amd64 -q -O /usr/local/bin/earthly && chmod +x /usr/local/bin/earthly'"
+      - name: Earthly version
+        run: earthly --version
+
+      # Instead of actions/setup-java this does not rely on
+      - name: 'Setup: Creates a settings.xml'
         run: |
           earthly +ci-generate-settings \
               --MAVEN_REPOSITORY_ID=github \
               --MAVEN_REPOSITORY_USER=${{ github.actor }} \
               --MAVEN_REPOSITORY_PASS=${{ github.token }}
-
-      # Setup: Installs earthly
-      - name: Download latest earthly
-        run: "sudo /bin/sh -c 'wget https://github.com/earthly/earthly/releases/latest/download/earthly-linux-amd64 -q -O /usr/local/bin/earthly && chmod +x /usr/local/bin/earthly'"
-      - name: Earthly version
-        run: earthly --version
 
       - name: Build
         run: earthly +swagger-compile
