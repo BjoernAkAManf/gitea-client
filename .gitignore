@@ -5,3 +5,7 @@ settings.xml
 # IDE
 .idea
 *.iml
+
+# Generated Files
+versions.list
+versions.state
