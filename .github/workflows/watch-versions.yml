@@ -49,10 +49,16 @@ jobs:
             gh issue close $GH_ISSUE
           else
             lines=$(cat versions.list)
-            echo '# TODO List' > $BODY
+            echo 'This an auto generated message produced by github actions.' > $BODY
+            echo '' >> $BODY
+            echo '# Versions' >> $BODY
+
             for line in $lines; do
               echo "- [ ] " $line >> $BODY
             done
+
+            echo '' >> $BODY
+            echo 'Please update the Version specified in Earthfile accordingly' >> $BODY
 
             gh issue reopen $GH_ISSUE
           fi
