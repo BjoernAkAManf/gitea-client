@@ -1,0 +1,69 @@
+name: Watch Job
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '* * * * 0-6'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  comment:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Cache last Timeout File
+        uses: actions/cache@v3
+        with:
+          path: versions.timeout
+
+      - name: "Check Preconditions"
+        if: ${{ env.GH_ISSUE == '' || (github.event_name == 'workflow_dispatch' && github.actor != github.repository_owner) }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ISSUE: ${{ secrets.GH_ISSUE }}
+        run: |
+          if [[ -z "$GH_ISSUE" ]]; then
+              gh issue create --title '[SETUP] Notification' --body '...'
+          fi
+          echo "Setup will never succeed. Set ENV Variable"
+          exit 1
+
+      - name: 'Setup: Install earthly'
+        run: "sudo /bin/sh -c 'wget https://github.com/earthly/earthly/releases/latest/download/earthly-linux-amd64 -q -O /usr/local/bin/earthly && chmod +x /usr/local/bin/earthly'"
+      - name: Earthly version
+        run: earthly --version
+
+      - name: Update Notification Issue
+        # No Cache because it may cache wrongly
+        run: |
+          earthly --no-cache +ci-download-versions
+
+          BODY=body.md
+          state=$(cat versions.state)
+          if [ "$state" == "0" ]; then
+            echo 'Nothing to change' > $BODY
+            gh issue close $GH_ISSUE
+          else
+            lines=$(cat versions.list)
+            echo 'This an auto generated message produced by github actions.' > $BODY
+            echo '' >> $BODY
+            echo '# Versions' >> $BODY
+
+            for line in $lines; do
+              echo "- [ ] " $line >> $BODY
+            done
+
+            echo '' >> $BODY
+            echo 'Please update the Version specified in Earthfile accordingly' >> $BODY
+
+            gh issue reopen $GH_ISSUE
+          fi
+
+          gh issue edit $GH_ISSUE --body-file $BODY
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_ISSUE: ${{ secrets.GH_ISSUE }}

@@ -88,6 +88,19 @@ swagger-deploy:
         -Dsources=gitea-api-${GITEA_VERSION}-sources.jar \
         -Djavadoc=gitea-api-${GITEA_VERSION}-javadoc.jar
 
+ci-download-versions:
+    FROM node:18-alpine
+
+    COPY --if-exists versions.timeout versions.timeout
+    COPY scripts/download.mjs .
+    ENV CURRENT_VERSION=${GITEA_VERSION}
+    RUN node download.mjs > versions.list; \
+        echo $? > versions.state;
+
+    SAVE ARTIFACT --if-exists versions.timeout AS LOCAL versions.timeout
+    SAVE ARTIFACT versions.list AS LOCAL versions.list
+    SAVE ARTIFACT versions.state AS LOCAL versions.state
+
 ci-generate-settings:
     FROM busybox
     ARG MAVEN_REPOSITORY_ID
