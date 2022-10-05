@@ -18,6 +18,7 @@ jobs:
       - name: Cache last Timeout File
         uses: actions/cache@v3
         with:
+          key: versions.timeout
           path: versions.timeout
 
       - name: "Check Preconditions"
