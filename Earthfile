@@ -1,6 +1,6 @@
 VERSION 0.6
 
-ARG GITEA_VERSION=1.17.0
+ARG GITEA_VERSION=1.17.2
 
 swagger-create:
     FROM gitea/gitea:${GITEA_VERSION}
