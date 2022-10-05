@@ -2,7 +2,7 @@ import { existsSync, statSync, readFileSync, writeFileSync } from 'fs'
 
 // TODO: Also cache last downloaded file (gracefully fail for a while)
 
-const FETCH_PATH = './LAST_FETCH'
+const FETCH_PATH = './versions.timeout'
 const RATELIMIT_LIMIT = 'x-ratelimit-limit'
 const RATELIMIT_RESET = 'x-ratelimit-reset'
 const RATELIMIT_REMAINING = 'x-ratelimit-remaining'
@@ -24,36 +24,69 @@ if (!success) {
     process.exit(5)
 }
 
-async function updateTimeout(time) {
-    return new Promise((resolve) => {
-        writeFileSync(FETCH_PATH, time, {
-            encoding: 'utf8'
-        })
-        return resolve(true)
-    })
+function getTime() {
+    return Math.floor(new Date().getTime() / 1000)
 }
 
-async function retrieveTimeout() {
-    return new Promise((resolve, reject) => {
-        if (!existsSync(FETCH_PATH)) {
-            // No file exists => First time running as far as it is known
-            return resolve(true)
+const { getTimeout, updateTimeout, retrieveTimeout } = (() => {
+    const state = {}
+
+    function updateCachedTimeout(next) {
+        state.time = next
+    }
+
+    function getCachedTimeout() {
+        const time = state.time
+        if (time === undefined) {
+            return Promise.resolve(undefined)
         }
-        const stat = statSync(FETCH_PATH)
-        if (!stat.isFile()) {
-            return reject('Cache File exists, but is directory')
+        if (time === null) {
+            return Promise.resolve(true)
         }
+        const now = getTime()
+        return Promise.resolve(time <= now)
+    }
 
-        const now = new Date().getTime() / 1000
+    return {
+        getTimeout: async function () {
+            const timeout = await getCachedTimeout()
+            if (timeout === undefined) {
+                throw new Error('Timeout has to be retrieved at least once!')
+            }
+            return timeout
+        },
+        retrieveTimeout: async function () {
+            return new Promise((resolve, reject) => {
+                if (!existsSync(FETCH_PATH)) {
+                    updateCachedTimeout(null)
+                    // No file exists => First time running as far as it is known
+                    return resolve(getCachedTimeout())
+                }
+                const stat = statSync(FETCH_PATH)
+                if (!stat.isFile()) {
+                    return reject('Cache File exists, but is directory')
+                }
 
-        const next = toIntPos(readFileSync(FETCH_PATH, {
-            encoding: 'utf8'
-        }))
+                updateCachedTimeout(toIntPos(readFileSync(FETCH_PATH, {
+                    encoding: 'utf8'
+                })))
 
-        // Check the next download interval has passed already
-        resolve(next <= now)
-    })
-}
+                // Check the next download interval has passed already
+                return resolve(getCachedTimeout())
+            })
+        },
+
+        updateTimeout: async function (time) {
+            updateCachedTimeout(time)
+            return new Promise((resolve) => {
+                writeFileSync(FETCH_PATH, `${time}`, {
+                    encoding: 'utf8'
+                })
+                return resolve(true)
+            })
+        }
+    }
+})()
 
 function toIntPos(str) {
     const type = typeof str
@@ -118,7 +151,7 @@ async function download(url) {
 
     if ((remaining <= 0) || (remaining <= limit / 10)) {
         await updateTimeout(reset)
-        // Process data anyway
+        // Process data anyway, but quit after this
     }
 
     return json
@@ -177,6 +210,11 @@ function compareVersion(left, right) {
 }
 
 async function downloadResults(url, currentVersion) {
+    const timeout = await getTimeout()
+    if (!timeout) {
+        throw new Error('Timeout has been reached!')
+    }
+
     const resp = await download(url)
         .catch(onDownloadErrors)
 
