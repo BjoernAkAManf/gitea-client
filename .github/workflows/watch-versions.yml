@@ -66,26 +66,29 @@ jobs:
             echo '' >> $BODY
             echo 'Please update the Version specified in Earthfile accordingly' >> $BODY
 
-            gh issue reopen $GH_ISSUE || true
+            gh issue reopen $GH_ISSUE
           fi
 
           gh issue edit $GH_ISSUE --body-file $BODY
 
-          for line in $lines; do
-            VER_BRANCH=feat-update-${line}
-            git ls-remote --exit-code --heads origin ${VER_BRANCH}
-            VER_EXISTS=$?
-            if [ ${VER_EXISTS} -eq 0 ]; then
-              git checkout ${GH_SHA}
-              git checkout -b ${VER_BRANCH}
-              earthly +ci-update-version --GITEA_VERSION_NEXT=${line}
-              git add -A
-              git commit -m "feat: Update to Version ${line}"
-              git push
-  
-              gh pr create --fill
-            fi
-          done
+          if [ "$state" != "0" ]; then
+            lines=$(cat versions.list)
+
+            for line in $lines; do
+              VER_BRANCH=feat-update-${line}
+              VER_EXISTS=$(git ls-remote --heads origin ${VER_BRANCH} | wc -l)
+              if [ ${VER_EXISTS} -eq 0 ]; then
+                git checkout ${GH_SHA}
+                git checkout -b ${VER_BRANCH}
+                earthly +ci-update-version --GITEA_VERSION_NEXT=${line}
+                git add -A
+                git commit -m "feat: Update to Version ${line}"
+                git push
+    
+                gh pr create --fill
+              fi
+            done
+          fi
 
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
