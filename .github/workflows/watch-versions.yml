@@ -38,6 +38,11 @@ jobs:
       - name: Earthly version
         run: earthly --version
 
+      - name: Setup Git
+        run: |
+          git config --global user.name "GitHub Action"
+          git config --global user.email "github-action@users.noreply.github.com"
+
       - name: Update Notification Issue
         # No Cache because it may cache wrongly
         run: |
@@ -67,14 +72,19 @@ jobs:
           gh issue edit $GH_ISSUE --body-file $BODY
 
           for line in $lines; do
-            git checkout ${GH_SHA}
-            git checkout -b feat-update-${line}
-            earthly +ci-update-version --GITEA_VERSION_NEXT=${line}
-            git add -A
-            git commit -m "feat: Update to Version ${line}"
-            git push
-
-            gh pr create --fill
+            VER_BRANCH=feat-update-${line}
+            git ls-remote --exit-code --heads origin ${VER_BRANCH}
+            VER_EXISTS=$?
+            if [ ${VER_EXISTS} -eq 0 ]; then
+              git checkout ${GH_SHA}
+              git checkout -b ${VER_BRANCH}
+              earthly +ci-update-version --GITEA_VERSION_NEXT=${line}
+              git add -A
+              git commit -m "feat: Update to Version ${line}"
+              git push
+  
+              gh pr create --fill
+            fi
           done
 
         env:
