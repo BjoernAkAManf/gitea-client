@@ -8,6 +8,7 @@ on:
 permissions:
   contents: write
   issues: write
+  pull-requests: write
 
 jobs:
   comment:
@@ -84,7 +85,7 @@ jobs:
                 git add -A
                 git commit -m "feat: Update to Version ${line}"
                 git push --set-upstream origin ${VER_BRANCH}
-    
+          
                 gh pr create --title "Create Version ${line}" --body "Automatically created by Github Actions" 
               fi
             done
