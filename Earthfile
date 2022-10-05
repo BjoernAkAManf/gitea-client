@@ -101,6 +101,18 @@ ci-download-versions:
     SAVE ARTIFACT versions.list AS LOCAL versions.list
     SAVE ARTIFACT versions.state AS LOCAL versions.state
 
+ci-update-version:
+    FROM busybox
+    ARG GITEA_VERSION_NEXT
+
+    IF [ "${GITEA_VERSION_NEXT}" = "" ]
+      RUN echo 'Specify ${GITEA_VERSION_NEXT}' && exit 1
+    END
+
+    COPY Earthfile Earthfile
+    RUN sed -i "3s/ARG\ GITEA_VERSION=${GITEA_VERSION}/ARG\ GITEA_VERSION=${GITEA_VERSION_NEXT}/" Earthfile
+    SAVE ARTIFACT Earthfile AS LOCAL Earthfile
+
 ci-generate-settings:
     FROM busybox
     ARG MAVEN_REPOSITORY_ID

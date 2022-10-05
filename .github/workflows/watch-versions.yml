@@ -6,7 +6,7 @@ on:
     - cron: '* * * * 0-6'
 
 permissions:
-  contents: read
+  contents: write
   issues: write
 
 jobs:
@@ -65,6 +65,19 @@ jobs:
           fi
 
           gh issue edit $GH_ISSUE --body-file $BODY
+
+          for line in $lines; do
+            git checkout ${GH_SHA}
+            git checkout -b feat-update-${line}
+            earthly +ci-update-version --GITEA_VERSION_NEXT=${line}
+            git add -A
+            git commit -m "feat: Update to Version ${line}"
+            git push
+
+            gh pr create --fill
+          done
+
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GH_ISSUE: ${{ secrets.GH_ISSUE }}
+          GH_SHA: ${{ github.sha }}
