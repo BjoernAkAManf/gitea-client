@@ -5,14 +5,23 @@ on:
     - cron: '0 12 * * *'
 
 jobs:
-  del_runs:
+  cleanup:
     runs-on: ubuntu-latest
     steps:
-      - name: Delete workflow runs
+      - name: Delete workflow runs (watch-versions.yml)
         uses: Mattraks/delete-workflow-runs@5ebc537fc6b4f5c1634865f0030271fb6776b28d
         with:
           token: ${{ github.token }}
           repository: ${{ github.repository }}
           delete_workflow_pattern: 'watch-versions.yml'
+          retain_days: 1
+          keep_minimum_runs: 25
+
+      - name: Delete workflow runs (cleanup.yml)
+        uses: Mattraks/delete-workflow-runs@5ebc537fc6b4f5c1634865f0030271fb6776b28d
+        with:
+          token: ${{ github.token }}
+          repository: ${{ github.repository }}
+          delete_workflow_pattern: 'cleanup.yml'
           retain_days: 1
           keep_minimum_runs: 25
